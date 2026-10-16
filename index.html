@@ -24,12 +24,23 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Kas Karang Taruna</h1>
-                    <p class="text-xs text-indigo-200">Sistem Pencatatan & Sinkronisasi Keuangan</p>
+                    <p class="text-xs text-indigo-200">Sistem Transparansi Keuangan Pemuda</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
+
+            <!-- Role Switcher Tabs -->
+            <div class="flex items-center bg-indigo-900/50 p-1 rounded-xl border border-indigo-500/50">
+                <button onclick="switchRole('anggota')" id="btnRoleAnggota" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-eye"></i> Mode Anggota (Transparansi)
+                </button>
+                <button onclick="requestBendaharaAccess()" id="btnRoleBendahara" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock"></i> Panel Bendahara
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2" id="bendaharaTools">
                 <button onclick="openConfigModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
-                    <i class="fa-solid fa-gear"></i> Setel Google Sheet
+                    <i class="fa-solid fa-gear"></i> Setel Sheet
                 </button>
                 <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
                     <i class="fa-solid fa-file-excel"></i> Export CSV
@@ -40,41 +51,15 @@
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Left Column: Form Input & Quick Info -->
-        <div class="lg:col-span-1 space-y-6">
+        <!-- Left Column: Form Input (Only visible for Bendahara) -->
+        <div id="bendaharaSection" class="lg:col-span-1 space-y-6 hidden">
             
-            <!-- Dashboard Summary Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-                <!-- Saldo Bersih -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Saldo Kas</p>
-                        <h3 id="totalSaldo" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-vault text-xl"></i>
-                    </div>
+            <!-- Dashboard Summary Cards for Bendahara view if needed or shared -->
+            <div class="bg-indigo-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
+                <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-shield-halved"></i> Area Kerja Bendahara
                 </div>
-                <!-- Total Masuk -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pemasukan</p>
-                        <h3 id="totalMasuk" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-arrow-trend-up text-xl"></i>
-                    </div>
-                </div>
-                <!-- Total Keluar -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengeluaran</p>
-                        <h3 id="totalKeluar" class="text-2xl font-bold text-rose-600 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-arrow-trend-down text-xl"></i>
-                    </div>
-                </div>
+                <p class="text-xs text-indigo-200">Gunakan form di bawah ini untuk mencatat kas masuk dan keluar. Data akan otomatis masuk ke tabel publik dan tersinkron.</p>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -139,12 +124,61 @@
             </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full">
+        <!-- Right Column / Full Column for Table & Summary -->
+        <div id="mainContentColumn" class="lg:col-span-3 space-y-6 transition-all duration-300">
+            
+            <!-- Dashboard Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Saldo Bersih -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Saldo Kas</p>
+                        <h3 id="totalSaldo" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
+                    </div>
+                    <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
+                        <i class="fa-solid fa-vault text-xl"></i>
+                    </div>
+                </div>
+                <!-- Total Masuk -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pemasukan</p>
+                        <h3 id="totalMasuk" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</h3>
+                    </div>
+                    <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                        <i class="fa-solid fa-arrow-trend-up text-xl"></i>
+                    </div>
+                </div>
+                <!-- Total Keluar -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengeluaran</p>
+                        <h3 id="totalKeluar" class="text-2xl font-bold text-rose-600 mt-1">Rp 0</h3>
+                    </div>
+                    <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
+                        <i class="fa-solid fa-arrow-trend-down text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transparency Banner (Visible in Member Mode) -->
+            <div id="anggotaBanner" class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-600 text-white p-2.5 rounded-xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold">Mode Transparansi Keuangan Karang Taruna</h4>
+                        <p class="text-xs text-emerald-700">Semua warga/anggota dapat melihat seluruh catatan kas masuk dan keluar secara real-time.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <h2 class="text-base font-bold text-slate-900">Riwayat Transaksi Kas</h2>
-                        <p class="text-xs text-slate-500">Semua catatan kas masuk dan keluar organisasi</p>
+                        <p class="text-xs text-slate-500">Transparansi pemasukan & pengeluaran organisasi</p>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <select id="filterJenis" onchange="renderTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none">
@@ -164,7 +198,7 @@
                                 <th class="py-3 px-4">Kategori & Ket</th>
                                 <th class="py-3 px-4">Jenis</th>
                                 <th class="py-3 px-4 text-right">Nominal</th>
-                                <th class="py-3 px-4 text-center">Aksi</th>
+                                <th id="thActionHeader" class="py-3 px-4 text-center hidden">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="transactionTableBody" class="divide-y divide-slate-100 text-sm">
@@ -223,6 +257,29 @@
         </div>
     </div>
 
+    <!-- Password Modal for Bendahara Access -->
+    <div id="passwordModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-indigo-600"></i> Autorisasi Bendahara
+                </h3>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Masukkan password bendahara untuk masuk ke Panel Penginputan & Pengaturan.
+            </p>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Password Bendahara</label>
+                <input type="password" id="passwordInput" placeholder="Masukkan password..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" onkeydown="if(event.key === 'Enter') verifyPassword()">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closePasswordModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
+                <button onclick="verifyPassword()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Masuk Panel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastMessage">Pesan notifikasi...</span>
@@ -231,12 +288,70 @@
     <script>
         let transactions = JSON.parse(localStorage.getItem('kt_transactions')) || [];
         let scriptUrl = localStorage.getItem('kt_script_url') || '';
+        let currentRole = 'anggota'; // Default mode is member transparency view
+        // Ubah string 'taruna123' di bawah ini untuk mengganti password default bendahara
+        const BENDAHARA_PASSWORD = localStorage.getItem('kt_password') || 'sirtu555';
 
         // Set default date to today
         document.getElementById('tanggal').valueAsDate = new Date();
         if (scriptUrl) {
             document.getElementById('scriptUrlInput').value = scriptUrl;
         }
+
+        function requestBendaharaAccess() {
+            if (currentRole === 'bendahara') return;
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordModal').classList.remove('hidden');
+            document.getElementById('passwordInput').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+        }
+
+        function verifyPassword() {
+            const inputVal = document.getElementById('passwordInput').value;
+            if (inputVal === BENDAHARA_PASSWORD) {
+                closePasswordModal();
+                switchRole('bendahara');
+                showToast('Berhasil masuk ke Panel Bendahara!');
+            } else {
+                showToast('Password salah! Silakan coba lagi.', true);
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            const btnAnggota = document.getElementById('btnRoleAnggota');
+            const btnBendahara = document.getElementById('btnRoleBendahara');
+            const bendaharaSection = document.getElementById('bendaharaSection');
+            const mainContentColumn = document.getElementById('mainContentColumn');
+            const bendaharaTools = document.getElementById('bendaharaTools');
+            const anggotaBanner = document.getElementById('anggotaBanner');
+
+            if (role === 'anggota') {
+                btnAnggota.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5";
+                btnBendahara.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5";
+                
+                bendaharaSection.classList.add('hidden');
+                mainContentColumn.className = "lg:col-span-3 space-y-6 transition-all duration-300";
+                bendaharaTools.classList.add('hidden');
+                anggotaBanner.classList.remove('hidden');
+            } else {
+                btnBendahara.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5";
+                btnAnggota.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5";
+                
+                bendaharaSection.classList.remove('hidden');
+                mainContentColumn.className = "lg:col-span-2 space-y-6 transition-all duration-300";
+                bendaharaTools.classList.remove('hidden');
+                anggotaBanner.classList.add('hidden');
+            }
+            renderTable();
+        }
+
+        // Initialize view based on default role
+        switchRole('anggota');
 
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
@@ -364,6 +479,13 @@
             const emptyState = document.getElementById('emptyState');
             const filterJenis = document.getElementById('filterJenis').value;
             const searchKeyword = document.getElementById('searchKeyword').value.toLowerCase();
+            const thActionHeader = document.getElementById('thActionHeader');
+
+            if (currentRole === 'bendahara') {
+                thActionHeader.classList.remove('hidden');
+            } else {
+                thActionHeader.classList.add('hidden');
+            }
 
             tbody.innerHTML = '';
 
@@ -388,6 +510,12 @@
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
                     : 'bg-rose-50 text-rose-700 border-rose-100';
 
+                let actionTd = currentRole === 'bendahara' 
+                    ? `<td class="py-3 px-4 text-center">
+                         <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
+                       </td>`
+                    : '';
+
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-xs text-slate-500 font-medium">${t.timestamp}</td>
                     <td class="py-3 px-4">
@@ -402,9 +530,7 @@
                     <td class="py-3 px-4 text-right font-bold ${t.jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-600'}">
                         ${t.jenis === 'Masuk' ? '+' : '-'} ${formatRupiah(t.nominal)}
                     </td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
-                    </td>
+                    ${actionTd}
                 `;
                 tbody.appendChild(tr);
             });
