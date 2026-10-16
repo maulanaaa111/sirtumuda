@@ -260,9 +260,12 @@
 
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([data.timestamp, data.jenis, data.kategori, data.nominal, data.keterangan, data.inputer]);
-  return ContentService.createTextOutput(JSON.stringify({"status":"success"})).setMimeType(ContentService.MimeType.JSON);
+  if (e && e.postData && e.postData.contents) {
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([data.timestamp, data.jenis, data.kategori, data.nominal, data.keterangan, data.inputer]);
+    return ContentService.createTextOutput(JSON.stringify({"status":"success"})).setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput(JSON.stringify({"status":"error", "message":"No postData"})).setMimeType(ContentService.MimeType.JSON);
 }</textarea>
             </div>
 
@@ -339,9 +342,9 @@ function doPost(e) {
         // CONFIGURATION: Masukkan URL Web App Google Sheet kamu di sini
         // Supaya anggota lain otomatis terhubung tanpa perlu setting apa-apa!
         // ==========================================
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKtt9JXDUTdH9aC9EBJta4htQvNfEye2pnRXEWulxxdYi75TPBVCSLdyhS41QLSpsX/exec'; 
+        const DEFAULT_SCRIPT_URL = 'MASUKKAN_URL_WEB_APP_GOOGLE_SHEET_DISINI'; 
 
-        let scriptUrl = localStorage.getItem('kt_script_url') || (DEFAULT_SCRIPT_URL !== 'MASUKKAN_URL_WEB_APP_GOOGLE_SHEET_DISINI' ? DEFAULT_SCRIPT_URL : '');
+        let scriptUrl = localStorage.getItem('kt_script_url') || (DEFAULT_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbzykhSw37rke56jNVcyc60wo2yN1kX3NHpFAyWm_FUy5uE-5ECLDuBYbQBFoS9Xt0N_/exec' ? DEFAULT_SCRIPT_URL : '');
         
         let categories = JSON.parse(localStorage.getItem('kt_categories')) || [
             'Iuran Wajib Anggota',
@@ -508,8 +511,18 @@ function doPost(e) {
 
         function copyAppsScript() {
             const snippet = document.getElementById('scriptSnippet');
-            navigator.clipboard.writeText(snippet.value);
-            showToast('Kode Apps Script berhasil disalin!');
+            snippet.select();
+            snippet.setSelectionRange(0, 99999); // Untuk perangkat mobile
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Kode Apps Script berhasil disalin!');
+                } else {
+                    showToast('Gagal menyalin kode.', true);
+                }
+            } catch (err) {
+                showToast('Gagal menyalin kode.', true);
+            }
         }
 
         function formatRupiah(number) {
