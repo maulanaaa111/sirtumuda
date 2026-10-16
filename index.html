@@ -39,6 +39,9 @@
             </div>
 
             <div class="flex items-center gap-2" id="bendaharaTools">
+                <button onclick="openCategoryModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
+                    <i class="fa-solid fa-tags"></i> Kategori
+                </button>
                 <button onclick="openConfigModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
                     <i class="fa-solid fa-gear"></i> Setel Sheet
                 </button>
@@ -85,12 +88,6 @@
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
                         <select id="kategori" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="">Pilih Kategori...</option>
-                            <option value="Iuran Wajib Anggota">Iuran Wajib Anggota</option>
-                            <option value="Donasi / Kas Warga">Donasi / Kas Warga</option>
-                            <option value="Kegiatan / Acara">Kegiatan / Acara (Contoh: 17an)</option>
-                            <option value="Konsumsi Rapat">Konsumsi Rapat</option>
-                            <option value="Perlengkapan & Inventaris">Perlengkapan & Inventaris</option>
-                            <option value="Lain-lain">Lain-lain</option>
                         </select>
                     </div>
 
@@ -280,6 +277,36 @@
         </div>
     </div>
 
+    <!-- Category Management Modal -->
+    <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-indigo-600"></i> Kelola Kategori Transaksi
+                </h3>
+                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Tambah atau hapus kategori sesuai dengan kebutuhan pencatatan keuangan Karang Taruna kamu.
+            </p>
+            
+            <form onsubmit="handleAddCategory(event)" class="flex gap-2">
+                <input type="text" id="newCategoryInput" required placeholder="Nama kategori baru..." class="flex-grow text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-xl transition">Tambah</button>
+            </form>
+
+            <div class="border border-slate-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                <ul id="categoryList" class="divide-y divide-slate-100 text-xs">
+                    <!-- Populated dynamically -->
+                </ul>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeCategoryModal()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Selesai</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastMessage">Pesan notifikasi...</span>
@@ -288,14 +315,84 @@
     <script>
         let transactions = JSON.parse(localStorage.getItem('kt_transactions')) || [];
         let scriptUrl = localStorage.getItem('kt_script_url') || '';
+        let categories = JSON.parse(localStorage.getItem('kt_categories')) || [
+            'Iuran Wajib Anggota',
+            'Donasi / Kas Warga',
+            'Kegiatan / Acara',
+            'Konsumsi Rapat',
+            'Perlengkapan & Inventaris',
+            'Lain-lain'
+        ];
         let currentRole = 'anggota'; // Default mode is member transparency view
         // Ubah string 'taruna123' di bawah ini untuk mengganti password default bendahara
-        const BENDAHARA_PASSWORD = localStorage.getItem('kt_password') || 'sirtu555';
+        const BENDAHARA_PASSWORD = localStorage.getItem('kt_password') || 'sirtumudaa';
 
         // Set default date to today
         document.getElementById('tanggal').valueAsDate = new Date();
         if (scriptUrl) {
             document.getElementById('scriptUrlInput').value = scriptUrl;
+        }
+
+        function populateCategoryDropdown() {
+            const select = document.getElementById('kategori');
+            select.innerHTML = '<option value="">Pilih Kategori...</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                select.appendChild(opt);
+            });
+        }
+        populateCategoryDropdown();
+
+        function openCategoryModal() {
+            renderCategoryList();
+            document.getElementById('categoryModal').classList.remove('hidden');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.add('hidden');
+            populateCategoryDropdown();
+        }
+
+        function renderCategoryList() {
+            const list = document.getElementById('categoryList');
+            list.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center px-3 py-2.5 hover:bg-slate-50";
+                li.innerHTML = `
+                    <span class="font-medium text-slate-800">${cat}</span>
+                    <button onclick="deleteCategory(${index})" class="text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function handleAddCategory(e) {
+            e.preventDefault();
+            const input = document.getElementById('newCategoryInput');
+            const val = input.value.trim();
+            if (val && !categories.includes(val)) {
+                categories.push(val);
+                localStorage.setItem('kt_categories', JSON.stringify(categories));
+                input.value = '';
+                renderCategoryList();
+                showToast('Kategori berhasil ditambahkan!');
+            } else {
+                showToast('Kategori sudah ada atau kosong!', true);
+            }
+        }
+
+        function deleteCategory(index) {
+            if (categories.length <= 1) {
+                showToast('Minimal harus ada 1 kategori!', true);
+                return;
+            }
+            categories.splice(index, 1);
+            localStorage.setItem('kt_categories', JSON.stringify(categories));
+            renderCategoryList();
+            showToast('Kategori dihapus');
         }
 
         function requestBendaharaAccess() {
