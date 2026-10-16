@@ -334,7 +334,15 @@ function doPost(e) {
 
     <script>
         let transactions = JSON.parse(localStorage.getItem('kt_transactions')) || [];
-        let scriptUrl = localStorage.getItem('kt_script_url') || '';
+        
+        // ==========================================
+        // CONFIGURATION: Masukkan URL Web App Google Sheet kamu di sini
+        // Supaya anggota lain otomatis terhubung tanpa perlu setting apa-apa!
+        // ==========================================
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLBnS1p-oT0eo853DpXEbpyuKKu6Uhwa9UMV4FKU1dxnAmqgPyeYNclpAIjLvuRkqx/exec'; 
+
+        let scriptUrl = localStorage.getItem('kt_script_url') || (DEFAULT_SCRIPT_URL !== 'MASUKKAN_URL_WEB_APP_GOOGLE_SHEET_DISINI' ? DEFAULT_SCRIPT_URL : '');
+        
         let categories = JSON.parse(localStorage.getItem('kt_categories')) || [
             'Iuran Wajib Anggota',
             'Donasi / Kas Warga',
