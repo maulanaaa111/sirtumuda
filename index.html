@@ -57,12 +57,11 @@
         <!-- Left Column: Form Input (Only visible for Bendahara) -->
         <div id="bendaharaSection" class="lg:col-span-1 space-y-6 hidden">
             
-            <!-- Dashboard Summary Cards for Bendahara view if needed or shared -->
             <div class="bg-indigo-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
                 <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
                     <i class="fa-solid fa-shield-halved"></i> Area Kerja Bendahara
                 </div>
-                <p class="text-xs text-indigo-200">Gunakan form di bawah ini untuk mencatat kas masuk dan keluar. Data akan otomatis masuk ke tabel publik dan tersinkron.</p>
+                <p class="text-xs text-indigo-200">Gunakan form di bawah ini untuk mencatat kas masuk dan keluar. Data akan otomatis masuk ke tabel publik dan tersinkron ke Sheet.</p>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -126,7 +125,6 @@
             
             <!-- Dashboard Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <!-- Saldo Bersih -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Saldo Kas</p>
@@ -136,7 +134,6 @@
                         <i class="fa-solid fa-vault text-xl"></i>
                     </div>
                 </div>
-                <!-- Total Masuk -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pemasukan</p>
@@ -146,7 +143,6 @@
                         <i class="fa-solid fa-arrow-trend-up text-xl"></i>
                     </div>
                 </div>
-                <!-- Total Keluar -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                     <div>
                         <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengeluaran</p>
@@ -158,7 +154,7 @@
                 </div>
             </div>
 
-            <!-- Transparency Banner (Visible in Member Mode) -->
+            <!-- Transparency Banner -->
             <div id="anggotaBanner" class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="bg-emerald-600 text-white p-2.5 rounded-xl">
@@ -166,9 +162,12 @@
                     </div>
                     <div>
                         <h4 class="text-sm font-bold">Mode Transparansi Keuangan Karang Taruna</h4>
-                        <p class="text-xs text-emerald-700">Semua warga/anggota dapat melihat seluruh catatan kas masuk dan keluar secara real-time.</p>
+                        <p class="text-xs text-emerald-700">Semua warga/anggota dapat melihat seluruh catatan kas masuk dan keluar secara real-time dari Google Sheets.</p>
                     </div>
                 </div>
+                <button onclick="loadTransactions()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-rotate"></i> Muat Ulang Data
+                </button>
             </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
@@ -213,16 +212,17 @@
         </div>
     </main>
 
+    <!-- Config Modal -->
     <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
             <div class="flex justify-between items-center">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-link text-indigo-600"></i> Integrasi Google Sheets
+                    <i class="fa-solid fa-link text-indigo-600"></i> Integrasi Google Sheets Dua Arah
                 </h3>
                 <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-500 leading-relaxed">
-                Agar data tersinkronisasi otomatis ke Google Sheets, masukkan URL Web App dari Google Apps Script yang sudah kamu buat.
+                Masukkan URL Web App dari Google Apps Script agar semua anggota bisa otomatis melihat data yang sama secara serentak.
             </p>
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
@@ -230,16 +230,35 @@
             </div>
             
             <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-[11px] text-indigo-900 space-y-1">
-                <p class="font-bold"><i class="fa-solid fa-circle-info"></i> Panduan Singkat Google Apps Script:</p>
+                <p class="font-bold"><i class="fa-solid fa-circle-info"></i> Update Script Apps Script (doGet & doPost):</p>
                 <ol class="list-decimal list-inside space-y-0.5 text-indigo-800">
-                    <li>Buat Google Sheet baru dengan header kolom: <code class="bg-white px-1 rounded">Timestamp, Jenis, Kategori, Nominal, Keterangan, Inputer</code></li>
-                    <li>Buka menu <b>Extensions > Apps Script</b>, paste script di bawah ini, lalu Deploy sebagai <b>Web App</b> (akses: <i>Anyone</i>).</li>
+                    <li>Buka Apps Script di Google Sheet kamu.</li>
+                    <li>Ganti kodenya dengan fungsi <code class="bg-white px-1 rounded">doGet(e)</code> dan <code class="bg-white px-1 rounded">doPost(e)</code> yang baru, lalu Deploy ulang sebagai <b>Web App</b>.</li>
                 </ol>
             </div>
 
             <div class="relative">
                 <button onclick="copyAppsScript()" class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 py-1 rounded">Salin Script</button>
-                <textarea readonly id="scriptSnippet" rows="5" class="w-full text-[10px] font-mono bg-slate-900 text-emerald-400 p-3 rounded-xl focus:outline-none">function doPost(e) {
+                <textarea readonly id="scriptSnippet" rows="6" class="w-full text-[10px] font-mono bg-slate-900 text-emerald-400 p-3 rounded-xl focus:outline-none">function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var rows = sheet.getDataRange().getValues();
+  var result = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = rows[i];
+    result.push({
+      id: "sheet_" + i,
+      timestamp: row[0],
+      jenis: row[1],
+      kategori: row[2],
+      nominal: row[3],
+      keterangan: row[4],
+      inputer: row[5]
+    });
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
   sheet.appendRow([data.timestamp, data.jenis, data.kategori, data.nominal, data.keterangan, data.inputer]);
@@ -249,7 +268,7 @@
 
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeConfigModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
-                <button onclick="saveConfigUrl()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Simpan Pengaturan</button>
+                <button onclick="saveConfigUrl()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Simpan & Tarik Data</button>
             </div>
         </div>
     </div>
@@ -307,6 +326,7 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastMessage">Pesan notifikasi...</span>
@@ -323,14 +343,13 @@
             'Perlengkapan & Inventaris',
             'Lain-lain'
         ];
-        let currentRole = 'anggota'; // Default mode is member transparency view
-        // Ubah string 'taruna123' di bawah ini untuk mengganti password default bendahara
+        let currentRole = 'anggota';
         const BENDAHARA_PASSWORD = localStorage.getItem('kt_password') || 'sirtumudaa';
 
-        // Set default date to today
         document.getElementById('tanggal').valueAsDate = new Date();
         if (scriptUrl) {
             document.getElementById('scriptUrlInput').value = scriptUrl;
+            loadTransactions(); // Auto load from sheet on start if configured
         }
 
         function populateCategoryDropdown() {
@@ -447,7 +466,6 @@
             renderTable();
         }
 
-        // Initialize view based on default role
         switchRole('anggota');
 
         function showToast(message, isError = false) {
@@ -476,7 +494,8 @@
             scriptUrl = document.getElementById('scriptUrlInput').value.trim();
             localStorage.setItem('kt_script_url', scriptUrl);
             closeConfigModal();
-            showToast('URL Google Sheets berhasil disimpan!');
+            showToast('URL Google Sheets disimpan, menarik data...');
+            loadTransactions();
         }
 
         function copyAppsScript() {
@@ -487,6 +506,25 @@
 
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        }
+
+        // Fetch data from Google Sheets (Two-Way Sync)
+        async function loadTransactions() {
+            if (!scriptUrl) return;
+            try {
+                const response = await fetch(scriptUrl);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    transactions = data.reverse(); // Urutkan dari yang terbaru
+                    localStorage.setItem('kt_transactions', JSON.stringify(transactions));
+                    renderSummary();
+                    renderTable();
+                    showToast('Data berhasil disinkronkan dari Google Sheets!');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal menarik data dari Sheet, menggunakan data lokal.', true);
+            }
         }
 
         async function handleFormSubmit(e) {
@@ -515,7 +553,6 @@
             transactions.unshift(newTx);
             localStorage.setItem('kt_transactions', JSON.stringify(transactions));
 
-            // Sync to Google Sheets if configured
             if (scriptUrl) {
                 try {
                     await fetch(scriptUrl, {
@@ -558,9 +595,9 @@
 
             transactions.forEach(t => {
                 if (t.jenis === 'Masuk') {
-                    totalMasuk += t.nominal;
+                    totalMasuk += Number(t.nominal);
                 } else {
-                    totalKeluar += t.nominal;
+                    totalKeluar += Number(t.nominal);
                 }
             });
 
@@ -588,7 +625,7 @@
 
             let filtered = transactions.filter(t => {
                 const matchJenis = (filterJenis === 'Semua' || t.jenis === filterJenis);
-                const matchSearch = t.keterangan.toLowerCase().includes(searchKeyword) || t.kategori.toLowerCase().includes(searchKeyword) || t.inputer.toLowerCase().includes(searchKeyword);
+                const matchSearch = (t.keterangan || '').toLowerCase().includes(searchKeyword) || (t.kategori || '').toLowerCase().includes(searchKeyword) || (t.inputer || '').toLowerCase().includes(searchKeyword);
                 return matchJenis && matchSearch;
             });
 
@@ -617,7 +654,7 @@
                     <td class="py-3 px-4 text-xs text-slate-500 font-medium">${t.timestamp}</td>
                     <td class="py-3 px-4">
                         <p class="font-semibold text-slate-900">${t.kategori}</p>
-                        <p class="text-xs text-slate-500">${t.keterangan} <span class="text-[10px] text-indigo-600 font-medium">(${t.inputer})</span></p>
+                        <p class="text-xs text-slate-500">${t.keterangan} <span class="text-[10px] text-indigo-600 font-medium">(${t.inputer || 'Bendahara'})</span></p>
                     </td>
                     <td class="py-3 px-4">
                         <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border ${badgeColor}">
@@ -641,7 +678,7 @@
 
             let csvContent = "data:text/csv;charset=utf-8,Tanggal,Jenis,Kategori,Nominal,Keterangan,Inputer\r\n";
             transactions.forEach(t => {
-                let row = `"${t.timestamp}","${t.jenis}","${t.kategori}",${t.nominal},"${t.keterangan}","${t.inputer}"`;
+                let row = `"${t.timestamp}","${t.jenis}","${t.kategori}",${t.nominal},"${t.keterangan}","${t.inputer || '-'}"`;
                 csvContent += row + "\r\n";
             });
 
@@ -655,7 +692,6 @@
             showToast('Laporan berhasil di-export ke CSV!');
         }
 
-        // Initial render on load
         renderSummary();
         renderTable();
     </script>
