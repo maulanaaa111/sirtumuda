@@ -3,201 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kas Karang Taruna - Keuangan Pemuda</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Keuangan Karang Taruna</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white/10 p-2.5 rounded-xl text-xl">
-                    <i class="fa-solid fa-wallet"></i>
+    <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 p-2.5 rounded-xl border border-emerald-500 shadow-inner">
+                    <i class="fa-solid fa-handshake-angle text-2xl text-emerald-100"></i>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Kas Karang Taruna</h1>
-                    <p class="text-xs text-indigo-200">Sistem Transparansi Keuangan Pemuda</p>
+                    <p class="text-xs text-emerald-200">Transparansi Dana Masuk & Keluar</p>
                 </div>
             </div>
-
-            <!-- Role Switcher Tabs -->
-            <div class="flex items-center bg-indigo-900/50 p-1 rounded-xl border border-indigo-500/50">
-                <button onclick="switchRole('anggota')" id="btnRoleAnggota" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-eye"></i> Mode Anggota (Transparansi)
+            
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <div id="roleBadge" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-800/80 border border-emerald-600 flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-emerald-300"></i> Mode: Anggota (Publik)
+                </div>
+                <button id="adminLoginBtn" onclick="openAdminModal()" class="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm border border-emerald-600">
+                    <i class="fa-solid fa-lock text-xs"></i> Login Admin
                 </button>
-                <button onclick="requestBendaharaAccess()" id="btnRoleBendahara" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5">
-                    <i class="fa-solid fa-lock"></i> Panel Bendahara
-                </button>
-            </div>
-
-            <div class="flex items-center gap-2" id="bendaharaTools">
-                <button onclick="toggleCloudSync()" id="cloudSyncBtn" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
-                    <i class="fa-solid fa-cloud"></i> <span id="cloudSyncStatusText">Cloud Sync: Aktif</span>
-                </button>
-                <button onclick="openCategoryModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
-                    <i class="fa-solid fa-tags"></i> Kategori
-                </button>
-                <button onclick="openConfigModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-indigo-500">
-                    <i class="fa-solid fa-gear"></i> Setel Sheet
-                </button>
-                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-file-excel"></i> Export CSV
+                <button id="adminLogoutBtn" onclick="logoutAdmin()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar Admin
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
         
-        <!-- Left Column: Form Input (Only visible for Bendahara) -->
-        <div id="bendaharaSection" class="lg:col-span-1 space-y-6 hidden">
-            
-            <div class="bg-indigo-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
-                <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
-                    <i class="fa-solid fa-shield-halved"></i> Area Kerja Bendahara
+        <!-- Summary Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Total Saldo -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute right-4 top-4 bg-emerald-50 text-emerald-600 p-3 rounded-xl text-xl">
+                    <i class="fa-solid fa-wallet"></i>
                 </div>
-                <p class="text-xs text-indigo-200">Gunakan form di bawah ini untuk mencatat kas masuk dan keluar. Data akan otomatis masuk ke tabel publik dan tersinkron ke Sheet.</p>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Saldo Kas</p>
+                    <h2 id="totalSaldo" class="text-3xl font-bold text-slate-800 mt-2">Rp 0</h2>
+                </div>
+                <p class="text-xs text-emerald-600 mt-4 font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Dana tersedia saat ini
+                </p>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-plus text-indigo-600"></i> Catat Transaksi Baru
-                </h2>
-                <form id="transactionForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Transaksi</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="border rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50">
-                                <input type="radio" name="jenis" value="Masuk" checked class="text-emerald-600 focus:ring-emerald-500">
-                                <span class="text-xs font-semibold text-emerald-700">Pemasukan</span>
-                            </label>
-                            <label class="border rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50/50">
-                                <input type="radio" name="jenis" value="Keluar" class="text-rose-600 focus:ring-rose-500">
-                                <span class="text-xs font-semibold text-rose-700">Pengeluaran</span>
-                            </label>
-                        </div>
-                    </div>
+            <!-- Total Pemasukan -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute right-4 top-4 bg-emerald-50 text-emerald-600 p-3 rounded-xl text-xl">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Pemasukan</p>
+                    <h2 id="totalPemasukan" class="text-3xl font-bold text-emerald-600 mt-2">Rp 0</h2>
+                </div>
+                <p class="text-xs text-slate-400 mt-4 font-medium">Akumulasi seluruh dana masuk</p>
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
-                        <select id="kategori" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="">Pilih Kategori...</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal (Rp)</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                            <input type="number" id="nominal" required min="100" placeholder="Contoh: 50000" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
-                        <input type="date" id="tanggal" required class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Keterangan / Catatan</label>
-                        <textarea id="keterangan" rows="2" placeholder="Contoh: Iuran bulanan RT 02" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Penginput / Bendahara</label>
-                        <input type="text" id="inputer" required placeholder="Contoh: Budi (Bendahara)" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-3 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-paper-plane"></i> Simpan & Sinkronkan
-                    </button>
-                </form>
+            <!-- Total Pengeluaran -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute right-4 top-4 bg-rose-50 text-rose-600 p-3 rounded-xl text-xl">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Pengeluaran</p>
+                    <h2 id="totalPengeluaran" class="text-3xl font-bold text-rose-600 mt-2">Rp 0</h2>
+                </div>
+                <p class="text-xs text-slate-400 mt-4 font-medium">Akumulasi seluruh penggunaan dana</p>
             </div>
         </div>
 
-        <!-- Right Column / Full Column for Table & Summary -->
-        <div id="mainContentColumn" class="lg:col-span-3 space-y-6 transition-all duration-300">
-            
-            <!-- Dashboard Summary Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Saldo Kas</p>
-                        <h3 id="totalSaldo" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-vault text-xl"></i>
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart Section -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-800 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-600"></i> Perbandingan Keuangan
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-4">Grafik perbandingan total kas masuk dan keluar.</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pemasukan</p>
-                        <h3 id="totalMasuk" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-arrow-trend-up text-xl"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengeluaran</p>
-                        <h3 id="totalKeluar" class="text-2xl font-bold text-rose-600 mt-1">Rp 0</h3>
-                    </div>
-                    <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
-                        <i class="fa-solid fa-arrow-trend-down text-xl"></i>
-                    </div>
+                <div class="relative h-64 flex items-center justify-center">
+                    <canvas id="financeChart"></canvas>
                 </div>
             </div>
 
-            <!-- Transparency Banner -->
-            <div id="anggotaBanner" class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="bg-emerald-600 text-white p-2.5 rounded-xl">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold">Mode Transparansi Keuangan Karang Taruna</h4>
-                        <p class="text-xs text-emerald-700">Semua warga/anggota dapat melihat seluruh catatan kas masuk dan keluar secara real-time dari Google Sheets.</p>
-                    </div>
-                </div>
-                <button onclick="loadTransactions()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-rotate"></i> Muat Ulang Data
-                </button>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+            <!-- Transaction Controls & Table Container -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 lg:col-span-2 flex flex-col">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
-                        <h2 class="text-base font-bold text-slate-900">Riwayat Transaksi Kas</h2>
-                        <p class="text-xs text-slate-500">Transparansi pemasukan & pengeluaran organisasi</p>
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-emerald-600"></i> Riwayat Transaksi Kas
+                        </h3>
+                        <p class="text-xs text-slate-500">Dapat dipantau oleh seluruh anggota Karang Taruna.</p>
                     </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <select id="filterJenis" onchange="renderTable()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none">
-                            <option value="Semua">Semua Jenis</option>
-                            <option value="Masuk">Pemasukan</option>
-                            <option value="Keluar">Pengeluaran</option>
-                        </select>
-                        <input type="text" id="searchKeyword" oninput="renderTable()" placeholder="Cari keterangan..." class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none w-full sm:w-48">
+
+                    <!-- Admin Action Button -->
+                    <div id="adminActionWrapper" class="hidden">
+                        <button onclick="openTransactionModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-plus"></i> Tambah Transaksi
+                        </button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto flex-grow">
+                <!-- Filters & Search Toolbar -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="searchKeyword" oninput="renderTransactions()" placeholder="Cari keterangan atau kategori..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <select id="filterType" onchange="renderTransactions()" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="ALL">Semua Jenis Transaksi</option>
+                            <option value="IN">Pemasukan Saja</option>
+                            <option value="OUT">Pengeluaran Saja</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto flex-grow rounded-xl border border-slate-100">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] uppercase tracking-wider font-semibold">
-                                <th class="py-3 px-4">Tanggal</th>
-                                <th class="py-3 px-4">Kategori & Ket</th>
-                                <th class="py-3 px-4">Jenis</th>
-                                <th class="py-3 px-4 text-right">Nominal</th>
-                                <th id="thActionHeader" class="py-3 px-4 text-center hidden">Aksi</th>
+                            <tr class="bg-slate-100/70 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                                <th class="p-3.5">Tanggal</th>
+                                <th class="p-3.5">Keterangan</th>
+                                <th class="p-3.5">Kategori</th>
+                                <th class="p-3.5">Jenis</th>
+                                <th class="p-3.5 text-right">Nominal</th>
+                                <th id="tableHeaderAction" class="p-3.5 text-center hidden">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="transactionTableBody" class="divide-y divide-slate-100 text-sm">
@@ -205,644 +150,430 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden flex flex-col items-center justify-center py-12 text-slate-400">
-                    <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
-                    <p class="text-sm font-medium">Belum ada data transaksi tercatat.</p>
+                
+                <!-- Empty State Message -->
+                <div id="emptyState" class="hidden py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300"></i>
+                    <p class="text-sm">Belum ada data transaksi yang tercatat.</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Config Modal -->
-    <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-link text-indigo-600"></i> Integrasi Google Sheets Dua Arah
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Karang Taruna. Portal Transparansi Keuangan Warga.</p>
+    </footer>
+
+    
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-emerald-600"></i> Login Admin
                 </h3>
-                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Masukkan URL Web App dari Google Apps Script agar semua anggota bisa otomatis melihat data yang sama secara serentak.
-            </p>
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
-                <input type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            
-            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-[11px] text-indigo-900 space-y-1">
-                <p class="font-bold"><i class="fa-solid fa-circle-info"></i> Update Script Apps Script (doGet & doPost):</p>
-                <ol class="list-decimal list-inside space-y-0.5 text-indigo-800">
-                    <li>Buka Apps Script di Google Sheet kamu.</li>
-                    <li>Ganti kodenya dengan fungsi <code class="bg-white px-1 rounded">doGet(e)</code> dan <code class="bg-white px-1 rounded">doPost(e)</code> yang baru, lalu Deploy ulang sebagai <b>Web App</b>.</li>
-                </ol>
-            </div>
-
-            <div class="relative">
-                <button onclick="copyAppsScript()" class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 py-1 rounded">Salin Script</button>
-                <textarea readonly id="scriptSnippet" rows="6" class="w-full text-[10px] font-mono bg-slate-900 text-emerald-400 p-3 rounded-xl focus:outline-none">function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var rows = sheet.getDataRange().getValues();
-  var result = [];
-  for (var i = 1; i < rows.length; i++) {
-    var row = rows[i];
-    result.push({
-      id: "sheet_" + i,
-      timestamp: row[0],
-      jenis: row[1],
-      kategori: row[2],
-      nominal: row[3],
-      keterangan: row[4],
-      inputer: row[5]
-    });
-  }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  if (e && e.postData && e.postData.contents) {
-    var data = JSON.parse(e.postData.contents);
-    sheet.appendRow([data.timestamp, data.jenis, data.kategori, data.nominal, data.keterangan, data.inputer]);
-    return ContentService.createTextOutput(JSON.stringify({"status":"success"})).setMimeType(ContentService.MimeType.JSON);
-  }
-  return ContentService.createTextOutput(JSON.stringify({"status":"error", "message":"No postData"})).setMimeType(ContentService.MimeType.JSON);
-}</textarea>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeConfigModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
-                <button onclick="saveConfigUrl()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Simpan & Tarik Data</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Password Modal for Bendahara Access -->
-    <div id="passwordModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-lock text-indigo-600"></i> Autorisasi Bendahara
-                </h3>
-                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Masukkan password bendahara untuk masuk ke Panel Penginputan & Pengaturan.
-            </p>
-            <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Password Bendahara</label>
-                <input type="password" id="passwordInput" placeholder="Masukkan password..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" onkeydown="if(event.key === 'Enter') verifyPassword()">
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closePasswordModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
-                <button onclick="verifyPassword()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Masuk Panel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Confirm Modal to replace browser confirm() -->
-    <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Konfirmasi Hapus
-            </h3>
-            <p id="confirmMessage" class="text-xs text-slate-500 leading-relaxed">
-                Yakin ingin menghapus transaksi ini?
-            </p>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeConfirmModal(false)" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
-                <button onclick="closeConfirmModal(true)" class="px-4 py-2 text-xs font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl">Hapus</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Management Modal -->
-    <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-tags text-indigo-600"></i> Kelola Kategori Transaksi
-                </h3>
-                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Tambah atau hapus kategori sesuai dengan kebutuhan pencatatan keuangan Karang Taruna kamu.
-            </p>
-            
-            <form onsubmit="handleAddCategory(event)" class="flex gap-2">
-                <input type="text" id="newCategoryInput" required placeholder="Nama kategori baru..." class="flex-grow text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-xl transition">Tambah</button>
+            <p class="text-xs text-slate-500 mb-4">Masukkan PIN atau kata sandi admin untuk menambah atau mengelola data kas.</p>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">PIN / Password Admin</label>
+                    <input type="password" id="adminPasswordInput" required placeholder="Contoh: taruna123" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAdminModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Masuk</button>
+                </div>
             </form>
-
-            <div class="border border-slate-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                <ul id="categoryList" class="divide-y divide-slate-100 text-xs">
-                    <!-- Populated dynamically -->
-                </ul>
-            </div>
-
-            <div class="flex justify-end pt-2">
-                <button onclick="closeCategoryModal()" class="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Selesai</button>
-            </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
-        <span id="toastMessage">Pesan notifikasi...</span>
+    <!-- Add Transaction Modal -->
+    <div id="transactionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald-600"></i> Tambah Transaksi Kas
+                </h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSaveTransaction(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Transaksi</label>
+                    <select id="txType" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="IN">Pemasukan (Dana Masuk)</option>
+                        <option value="OUT">Pengeluaran (Dana Keluar)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Keterangan</label>
+                    <input type="text" id="txDescription" required placeholder="Misal: Iuran bulanan warga RT 02 / Beli bola voli" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+                        <select id="txCategory" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="Iuran Warga">Iuran Warga</option>
+                            <option value="Donasi / Sponsor">Donasi / Sponsor</option>
+                            <option value="Kegiatan / Acara">Kegiatan / Acara</option>
+                            <option value="Konsumsi Rapat">Konsumsi Rapat</option>
+                            <option value="Perlengkapan / Inventaris">Perlengkapan / Inventaris</option>
+                            <option value="Lain-lain">Lain-lain</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal (Rp)</label>
+                        <input type="number" id="txAmount" required min="100" placeholder="100000" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
+                    <input type="date" id="txDate" required class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeTransactionModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Simpan Data</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Firebase Cloud Sync Integration -->
+    <!-- Custom Toast / Notification Modal -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMessage">Pemberitahuan</span>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Global Firebase variables provided by environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'karang-taruna-default';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "mock-key",
+            authDomain: "mock-domain.firebaseapp.com",
+            projectId: "mock-project",
+            storageBucket: "mock-bucket.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
 
-        if (firebaseConfig) {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            const auth = getAuth(app);
+        let app, db, auth;
+        let transactions = [];
+        let isAdmin = false;
+        let financeChartInstance = null;
 
-            window.initFirebaseSync = async function() {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
-                    
-                    // Real-time listener with error callback
-                    onSnapshot(colRef, (snapshot) => {
-                        const cloudTx = [];
-                        snapshot.forEach((docSnap) => {
-                            cloudTx.push({ id: docSnap.id, ...docSnap.data() });
-                        });
-                        if (cloudTx.length > 0 || window.useCloudSync) {
-                            cloudTx.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                            transactions = cloudTx;
-                            localStorage.setItem('kt_transactions', JSON.stringify(transactions));
-                            renderSummary();
-                            renderTable();
-                        }
-                    }, (error) => {
-                        console.error("Cloud sync error:", error);
-                    });
+        // Initialize Firebase & Auth
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-                    window.saveToCloud = async function(newTx) {
-                        if (!auth.currentUser) return;
-                        try {
-                            await addDoc(colRef, newTx);
-                        } catch (e) {
-                            console.error("Error adding document: ", e);
-                        }
-                    };
-
-                    window.deleteFromCloud = async function(id) {
-                        if (!auth.currentUser) return;
-                        try {
-                            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', id));
-                        } catch (e) {
-                            console.error("Error deleting document: ", e);
-                        }
-                    };
-
-                    window.useCloudSync = true;
-                    document.getElementById('cloudSyncStatusText').innerText = 'Cloud Sync: Aktif';
-                } catch (err) {
-                    console.error("Firebase auth/init error:", err);
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
                 }
-            };
 
-            window.initFirebaseSync();
-        }
-    </script>
-
-    <script>
-        let transactions = JSON.parse(localStorage.getItem('kt_transactions')) || [];
-        window.useCloudSync = false;
-        
-        // ==========================================
-        // CONFIGURATION: Masukkan URL Web App Google Sheet kamu di sini
-        // ==========================================
-        // CONFIGURATION: Masukkan URL Web App Google Sheet kamu di sini
-        // Supaya anggota lain otomatis terhubung tanpa perlu setting apa-apa!
-        // ==========================================
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzXD7H3b6uQIBx-YDWh4cAeYgOVMsVnMdNEIVfm3BV-_T8vYlMu1BNik_jsGzA5TAO3/exec'; 
-
-        let scriptUrl = localStorage.getItem('kt_script_url') || (DEFAULT_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbzXD7H3b6uQIBx-YDWh4cAeYgOVMsVnMdNEIVfm3BV-_T8vYlMu1BNik_jsGzA5TAO3/exec' ? DEFAULT_SCRIPT_URL : '');
-        
-        let categories = JSON.parse(localStorage.getItem('kt_categories')) || [
-            'Iuran Wajib Anggota',
-            'Donasi / Kas Warga',
-            'Kegiatan / Acara',
-            'Konsumsi Rapat',
-            'Perlengkapan & Inventaris',
-            'Lain-lain'
-        ];
-        let currentRole = 'anggota';
-        const BENDAHARA_PASSWORD = localStorage.getItem('kt_password') || 'sirtumudaa';
-
-        document.getElementById('tanggal').valueAsDate = new Date();
-        if (scriptUrl) {
-            document.getElementById('scriptUrlInput').value = scriptUrl;
-            loadTransactions(); // Auto load from sheet on start if configured
+                setupRealtimeListener();
+            } catch (err) {
+                console.error("Firebase init error:", err);
+                showToast("Gagal menghubungkan ke server cloud.", "error");
+                loadMockFallbackData();
+            }
         }
 
-        function populateCategoryDropdown() {
-            const select = document.getElementById('kategori');
-            select.innerHTML = '<option value="">Pilih Kategori...</option>';
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                select.appendChild(opt);
-            });
-        }
-        populateCategoryDropdown();
-
-        function openCategoryModal() {
-            renderCategoryList();
-            document.getElementById('categoryModal').classList.remove('hidden');
-        }
-
-        function closeCategoryModal() {
-            document.getElementById('categoryModal').classList.add('hidden');
-            populateCategoryDropdown();
-        }
-
-        function renderCategoryList() {
-            const list = document.getElementById('categoryList');
-            list.innerHTML = '';
-            categories.forEach((cat, index) => {
-                const li = document.createElement('li');
-                li.className = "flex justify-between items-center px-3 py-2.5 hover:bg-slate-50";
-                li.innerHTML = `
-                    <span class="font-medium text-slate-800">${cat}</span>
-                    <button onclick="deleteCategory(${index})" class="text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash-can"></i></button>
-                `;
-                list.appendChild(li);
+        // Firestore Realtime Listener following Strict Path Rule 1 & 2
+        function setupRealtimeListener() {
+            if (!db) return;
+            const txCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+            
+            onSnapshot(txCollectionRef, (snapshot) => {
+                transactions = [];
+                snapshot.forEach((docSnap) => {
+                    transactions.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                // Sort by date descending in JavaScript memory (Rule 2)
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                updateDashboard();
+            }, (error) => {
+                console.error("Firestore listen error:", error);
+                showToast("Gagal memuat data live.", "error");
             });
         }
 
-        function handleAddCategory(e) {
+        function loadMockFallbackData() {
+            transactions = [
+                { id: '1', type: 'IN', amount: 500000, category: 'Iuran Warga', description: 'Iuran Kas Bulanan RT 01/05', date: '2026-03-01' },
+                { id: '2', type: 'OUT', amount: 150000, category: 'Konsumsi Rapat', description: 'Snack rapat persiapan 17 Agustus', date: '2026-03-05' }
+            ];
+            updateDashboard();
+        }
+
+        // Global function bindings for UI
+        window.openAdminModal = function() {
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordInput').focus();
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        };
+
+        window.handleAdminLogin = function(e) {
             e.preventDefault();
-            const input = document.getElementById('newCategoryInput');
-            const val = input.value.trim();
-            if (val && !categories.includes(val)) {
-                categories.push(val);
-                localStorage.setItem('kt_categories', JSON.stringify(categories));
-                input.value = '';
-                renderCategoryList();
-                showToast('Kategori berhasil ditambahkan!');
+            const pass = document.getElementById('adminPasswordInput').value;
+            // Simple Admin PIN check (bisa disesuaikan, misal: "taruna123")
+            if (pass === 'taruna123' || pass === 'admin') {
+                isAdmin = true;
+                closeAdminModal();
+                updateAdminUIState();
+                showToast("Berhasil masuk sebagai Admin!", "success");
             } else {
-                showToast('Kategori sudah ada atau kosong!', true);
+                showToast("PIN Admin salah! Coba 'taruna123'", "error");
             }
-        }
+        };
 
-        function deleteCategory(index) {
-            if (categories.length <= 1) {
-                showToast('Minimal harus ada 1 kategori!', true);
-                return;
-            }
-            categories.splice(index, 1);
-            localStorage.setItem('kt_categories', JSON.stringify(categories));
-            renderCategoryList();
-            showToast('Kategori dihapus');
-        }
+        window.logoutAdmin = function() {
+            isAdmin = false;
+            updateAdminUIState();
+            showToast("Keluar dari Mode Admin.", "info");
+        };
 
-        function requestBendaharaAccess() {
-            if (currentRole === 'bendahara') return;
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordModal').classList.remove('hidden');
-            document.getElementById('passwordInput').focus();
-        }
+        function updateAdminUIState() {
+            const roleBadge = document.getElementById('roleBadge');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+            const adminActionWrapper = document.getElementById('adminActionWrapper');
+            const tableHeaderAction = document.getElementById('tableHeaderAction');
 
-        function closePasswordModal() {
-            document.getElementById('passwordModal').classList.add('hidden');
-        }
-
-        function verifyPassword() {
-            const inputVal = document.getElementById('passwordInput').value;
-            if (inputVal === BENDAHARA_PASSWORD) {
-                closePasswordModal();
-                switchRole('bendahara');
-                showToast('Berhasil masuk ke Panel Bendahara!');
+            if (isAdmin) {
+                roleBadge.innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-300"></i> Mode: Admin Karang Taruna`;
+                roleBadge.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-900 border border-emerald-500 flex items-center gap-2 text-emerald-100";
+                adminLoginBtn.classList.add('hidden');
+                adminLogoutBtn.classList.remove('hidden');
+                adminActionWrapper.classList.remove('hidden');
+                tableHeaderAction.classList.remove('hidden');
             } else {
-                showToast('Password salah! Silakan coba lagi.', true);
-                document.getElementById('passwordInput').focus();
+                roleBadge.innerHTML = `<i class="fa-solid fa-eye text-emerald-300"></i> Mode: Anggota (Publik)`;
+                roleBadge.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-800/80 border border-emerald-600 flex items-center gap-2 text-emerald-100";
+                adminLoginBtn.classList.remove('hidden');
+                adminLogoutBtn.classList.add('hidden');
+                adminActionWrapper.classList.add('hidden');
+                tableHeaderAction.classList.add('hidden');
             }
+            renderTransactions();
         }
 
-        function switchRole(role) {
-            currentRole = role;
-            const btnAnggota = document.getElementById('btnRoleAnggota');
-            const btnBendahara = document.getElementById('btnRoleBendahara');
-            const bendaharaSection = document.getElementById('bendaharaSection');
-            const mainContentColumn = document.getElementById('mainContentColumn');
-            const bendaharaTools = document.getElementById('bendaharaTools');
-            const anggotaBanner = document.getElementById('anggotaBanner');
+        window.openTransactionModal = function() {
+            document.getElementById('transactionModal').classList.remove('hidden');
+            document.getElementById('txDate').valueAsDate = new Date();
+            document.getElementById('txDescription').value = '';
+            document.getElementById('txAmount').value = '';
+        };
 
-            if (role === 'anggota') {
-                btnAnggota.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5";
-                btnBendahara.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5";
-                
-                bendaharaSection.classList.add('hidden');
-                mainContentColumn.className = "lg:col-span-3 space-y-6 transition-all duration-300";
-                bendaharaTools.classList.add('hidden');
-                anggotaBanner.classList.remove('hidden');
+        window.closeTransactionModal = function() {
+            document.getElementById('transactionModal').classList.add('hidden');
+        };
+
+        window.handleSaveTransaction = async function(e) {
+            e.preventDefault();
+            if (!isAdmin) return;
+
+            const type = document.getElementById('txType').value;
+            const description = document.getElementById('txDescription').value;
+            const category = document.getElementById('txCategory').value;
+            const amount = Number(document.getElementById('txAmount').value);
+            const date = document.getElementById('txDate').value;
+
+            const newTx = { type, description, category, amount, date, createdAt: Date.now() };
+
+            try {
+                if (db) {
+                    const txCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+                    await addDoc(txCollectionRef, newTx);
+                } else {
+                    transactions.unshift({ id: Date.now().toString(), ...newTx });
+                    updateDashboard();
+                }
+                closeTransactionModal();
+                showToast("Transaksi berhasil disimpan!", "success");
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast("Gagal menyimpan transaksi.", "error");
+            }
+        };
+
+        window.deleteTransaction = async function(id) {
+            if (!isAdmin) return;
+            if (!confirm("Apakah Anda yakin ingin menghapus data transaksi ini?")) return;
+
+            try {
+                if (db) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', id));
+                } else {
+                    transactions = transactions.filter(t => t.id !== id);
+                    updateDashboard();
+                }
+                showToast("Transaksi berhasil dihapus.", "success");
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast("Gagal menghapus transaksi.", "error");
+            }
+        };
+
+        function updateDashboard() {
+            let totalIn = 0;
+            let totalOut = 0;
+
+            transactions.forEach(t => {
+                if (t.type === 'IN') totalIn += Number(t.amount);
+                else if (t.type === 'OUT') totalOut += Number(t.amount);
+            });
+
+            const saldo = totalIn - totalOut;
+
+            document.getElementById('totalSaldo').innerText = formatRupiah(saldo);
+            document.getElementById('totalPemasukan').innerText = formatRupiah(totalIn);
+            document.getElementById('totalPengeluaran').innerText = formatRupiah(totalOut);
+
+            renderTransactions();
+            updateChart(totalIn, totalOut);
+        }
+
+        window.renderTransactions = function() {
+            const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            const tbody = document.getElementById('transactionTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableHeaderAction = document.getElementById('tableHeaderAction');
+
+            tbody.innerHTML = '';
+
+            let filtered = transactions.filter(t => {
+                const matchKeyword = t.description.toLowerCase().includes(keyword) || t.category.toLowerCase().includes(keyword);
+                const matchType = filterType === 'ALL' || t.type === filterType;
+                return matchKeyword && matchType;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
             } else {
-                btnBendahara.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-indigo-900 shadow-sm flex items-center gap-1.5";
-                btnAnggota.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition text-indigo-100 hover:text-white flex items-center gap-1.5";
-                
-                bendaharaSection.classList.remove('hidden');
-                mainContentColumn.className = "lg:col-span-2 space-y-6 transition-all duration-300";
-                bendaharaTools.classList.remove('hidden');
-                anggotaBanner.classList.add('hidden');
+                emptyState.classList.add('hidden');
+                filtered.forEach(t => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50/80 transition";
+
+                    const isIncome = t.type === 'IN';
+                    const badgeClass = isIncome ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
+                    const typeLabel = isIncome ? "Pemasukan" : "Pengeluaran";
+                    const amountSign = isIncome ? "+" : "-";
+
+                    let actionHtml = '';
+                    if (isAdmin) {
+                        tableHeaderAction.classList.remove('hidden');
+                        actionHtml = `<td class="p-3.5 text-center">
+                            <button onclick="deleteTransaction('${t.id}')" class="text-rose-500 hover:text-rose-700 p-1.5 transition" title="Hapus">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>`;
+                    } else {
+                        tableHeaderAction.classList.add('hidden');
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-3.5 text-slate-500 whitespace-nowrap">${formatDate(t.date)}</td>
+                        <td class="p-3.5 font-medium text-slate-800">${escapeHtml(t.description)}</td>
+                        <td class="p-3.5"><span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs">${escapeHtml(t.category)}</span></td>
+                        <td class="p-3.5"><span class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${badgeClass}">${typeLabel}</span></td>
+                        <td class="p-3.5 text-right font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${amountSign} ${formatRupiah(t.amount)}</td>
+                        ${actionHtml}
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
-            renderTable();
         }
 
-        switchRole('anggota');
+        function updateChart(income, expense) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (financeChartInstance) {
+                financeChartInstance.destroy();
+            }
 
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toastMessage');
-            const icon = document.getElementById('toastIcon');
-            
-            msg.innerText = message;
-            icon.className = isError ? "fa-solid fa-circle-exclamation text-rose-400" : "fa-solid fa-circle-check text-emerald-400";
-            
+            financeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran'],
+                    datasets: [{
+                        data: [income, expense],
+                        backgroundColor: ['#059669', '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Inter', size: 12 },
+                                boxWidth: 12
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function formatRupiah(num) {
+            return 'Rp ' + Number(num).toLocaleString('id-ID');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('id-ID', options);
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.innerText = message;
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-rose-400";
+            }
+
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
         }
 
-        function openConfigModal() {
-            document.getElementById('configModal').classList.remove('hidden');
-        }
-
-        function closeConfigModal() {
-            document.getElementById('configModal').classList.add('hidden');
-        }
-
-        function saveConfigUrl() {
-            scriptUrl = document.getElementById('scriptUrlInput').value.trim();
-            localStorage.setItem('kt_script_url', scriptUrl);
-            closeConfigModal();
-            showToast('URL Google Sheets disimpan, menarik data...');
-            loadTransactions();
-        }
-
-        function copyAppsScript() {
-            const snippet = document.getElementById('scriptSnippet');
-            snippet.select();
-            snippet.setSelectionRange(0, 99999); // Untuk perangkat mobile
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showToast('Kode Apps Script berhasil disalin!');
-                } else {
-                    showToast('Gagal menyalin kode.', true);
-                }
-            } catch (err) {
-                showToast('Gagal menyalin kode.', true);
-            }
-        }
-
-        function formatRupiah(number) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
-        }
-
-        // Fetch data from Google Sheets (Two-Way Sync)
-        async function loadTransactions() {
-            if (!scriptUrl) return;
-            try {
-                const response = await fetch(scriptUrl);
-                const text = await response.text();
-                
-                // Cek apakah response berupa HTML (biasanya karena Google Apps Script belum diset "Anyone")
-                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-                    throw new Error('Google Apps Script mengembalikan halaman login. Pastikan akses Web App diatur ke "Anyone" (Siapa saja) saat Deploy.');
-                }
-                
-                const data = JSON.parse(text);
-                if (Array.isArray(data)) {
-                    transactions = data.reverse(); // Urutkan dari yang terbaru
-                    localStorage.setItem('kt_transactions', JSON.stringify(transactions));
-                    renderSummary();
-                    renderTable();
-                    showToast('Data berhasil disinkronkan dari Google Sheets!');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast(err.message || 'Gagal menarik data dari Sheet. Periksa URL atau izin akses.', true);
-            }
-        }
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
-
-            const jenis = document.querySelector('input[name="jenis"]:checked').value;
-            const kategori = document.getElementById('kategori').value;
-            const nominal = parseFloat(document.getElementById('nominal').value);
-            const tanggal = document.getElementById('tanggal').value;
-            const keterangan = document.getElementById('keterangan').value || '-';
-            const inputer = document.getElementById('inputer').value;
-
-            const newTx = {
-                timestamp: new Date(tanggal).toLocaleString('id-ID'),
-                jenis,
-                kategori,
-                nominal,
-                keterangan,
-                inputer
-            };
-
-            if (window.useCloudSync && typeof window.saveToCloud === 'function') {
-                await window.saveToCloud(newTx);
-                showToast('Transaksi disimpan & tersinkron ke Cloud!');
-            } else {
-                const localTx = { id: Date.now().toString(), ...newTx };
-                transactions.unshift(localTx);
-                localStorage.setItem('kt_transactions', JSON.stringify(transactions));
-
-                if (scriptUrl) {
-                    try {
-                        await fetch(scriptUrl, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(localTx)
-                        });
-                        showToast('Transaksi disimpan & tersinkron ke Sheet!');
-                    } catch (err) {
-                        console.error(err);
-                        showToast('Tersimpan lokal, gagal sinkron ke Sheet.', true);
-                    }
-                } else {
-                    showToast('Transaksi berhasil disimpan lokal!');
-                }
-            }
-
-            document.getElementById('transactionForm').reset();
-            document.getElementById('tanggal').valueAsDate = new Date();
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Simpan & Sinkronkan`;
-
-            renderSummary();
-            renderTable();
-        }
-
-        let pendingDeleteId = null;
-        function deleteTransaction(id) {
-            pendingDeleteId = id;
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        function closeConfirmModal(isConfirmed) {
-            document.getElementById('confirmModal').classList.add('hidden');
-            if (isConfirmed && pendingDeleteId) {
-                if (window.useCloudSync && typeof window.deleteFromCloud === 'function') {
-                    window.deleteFromCloud(pendingDeleteId);
-                } else {
-                    transactions = transactions.filter(t => t.id !== pendingDeleteId);
-                    localStorage.setItem('kt_transactions', JSON.stringify(transactions));
-                }
-                renderSummary();
-                renderTable();
-                showToast('Transaksi berhasil dihapus');
-            }
-            pendingDeleteId = null;
-        }
-
-        function toggleCloudSync() {
-            window.useCloudSync = !window.useCloudSync;
-            const statusText = document.getElementById('cloudSyncStatusText');
-            if (window.useCloudSync) {
-                statusText.innerText = 'Cloud Sync: Aktif';
-                showToast('Cloud Sync diaktifkan.');
-            } else {
-                statusText.innerText = 'Cloud Sync: Nonaktif';
-                showToast('Cloud Sync dinonaktifkan.');
-            }
-        }
-
-        function renderSummary() {
-            let totalMasuk = 0;
-            let totalKeluar = 0;
-
-            transactions.forEach(t => {
-                if (t.jenis === 'Masuk') {
-                    totalMasuk += Number(t.nominal);
-                } else {
-                    totalKeluar += Number(t.nominal);
-                }
-            });
-
-            const saldo = totalMasuk - totalKeluar;
-
-            document.getElementById('totalSaldo').innerText = formatRupiah(saldo);
-            document.getElementById('totalMasuk').innerText = formatRupiah(totalMasuk);
-            document.getElementById('totalKeluar').innerText = formatRupiah(totalKeluar);
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('transactionTableBody');
-            const emptyState = document.getElementById('emptyState');
-            const filterJenis = document.getElementById('filterJenis').value;
-            const searchKeyword = document.getElementById('searchKeyword').value.toLowerCase();
-            const thActionHeader = document.getElementById('thActionHeader');
-
-            if (currentRole === 'bendahara') {
-                thActionHeader.classList.remove('hidden');
-            } else {
-                thActionHeader.classList.add('hidden');
-            }
-
-            tbody.innerHTML = '';
-
-            let filtered = transactions.filter(t => {
-                const matchJenis = (filterJenis === 'Semua' || t.jenis === filterJenis);
-                const matchSearch = (t.keterangan || '').toLowerCase().includes(searchKeyword) || (t.kategori || '').toLowerCase().includes(searchKeyword) || (t.inputer || '').toLowerCase().includes(searchKeyword);
-                return matchJenis && matchSearch;
-            });
-
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filtered.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition";
-                
-                const badgeColor = t.jenis === 'Masuk' 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                    : 'bg-rose-50 text-rose-700 border-rose-100';
-
-                let actionTd = currentRole === 'bendahara' 
-                    ? `<td class="py-3 px-4 text-center">
-                         <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
-                       </td>`
-                    : '';
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs text-slate-500 font-medium">${t.timestamp}</td>
-                    <td class="py-3 px-4">
-                        <p class="font-semibold text-slate-900">${t.kategori}</p>
-                        <p class="text-xs text-slate-500">${t.keterangan} <span class="text-[10px] text-indigo-600 font-medium">(${t.inputer || 'Bendahara'})</span></p>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border ${badgeColor}">
-                            ${t.jenis}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 text-right font-bold ${t.jenis === 'Masuk' ? 'text-emerald-600' : 'text-rose-600'}">
-                        ${t.jenis === 'Masuk' ? '+' : '-'} ${formatRupiah(t.nominal)}
-                    </td>
-                    ${actionTd}
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function exportToCSV() {
-            if (transactions.length === 0) {
-                showToast('Tidak ada data untuk diexport!', true);
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,Tanggal,Jenis,Kategori,Nominal,Keterangan,Inputer\r\n";
-            transactions.forEach(t => {
-                let row = `"${t.timestamp}","${t.jenis}","${t.kategori}",${t.nominal},"${t.keterangan}","${t.inputer || '-'}"`;
-                csvContent += row + "\r\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "laporan_kas_karang_taruna.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('Laporan berhasil di-export ke CSV!');
-        }
-
-        renderSummary();
-        renderTable();
+        window.onload = function() {
+            initFirebase();
+        };
     </script>
 </body>
 </html>
